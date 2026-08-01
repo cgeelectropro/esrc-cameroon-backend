@@ -1,0 +1,685 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  LEARNER
+  INSTRUCTOR
+  FELLOW
+  PARTNER
+  ADMIN
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CourseStatus {
+  PUBLISHED
+  DRAFT
+  PENDING
+  PRIVATE
+  TRASH
+}
+
+enum LessonType {
+  VIDEO
+  PDF
+  QUIZ
+  ASSIGNMENT
+  LIVE
+  TEXT
+}
+
+enum PaymentMethod {
+  MTN_MOMO
+  ORANGE_MONEY
+  STRIPE
+  PAYPAL
+  FLUTTERWAVE
+  SCHOLARSHIP
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PublicationType {
+  POLICY_BRIEF
+  WORKING_PAPER
+  JOURNAL_ARTICLE
+  REPORT
+  DATASET
+}
+
+enum EventType {
+  CONFERENCE
+  WORKSHOP
+  WEBINAR
+  STUDY_TOUR
+  TRAINING
+}
+
+enum OpportunityType {
+  JOB
+  INTERNSHIP
+  FELLOWSHIP
+  GRANT
+  COMPETITION
+}
+
+enum SessionType {
+  ONE_ON_ONE
+  GROUP
+  BUSINESS_REVIEW
+}
+
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum Language {
+  EN
+  FR
+  BOTH
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Currency {
+  XAF
+  USD
+  EUR
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String?
+  firstName         String
+  lastName          String
+  role              UserRole  @default(LEARNER)
+  avatar            String?
+  bio               String?
+  country           String    @default("CM")
+  city              String?
+  phone             String?
+  preferredLanguage Language  @default(EN)
+  isEmailVerified   Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  lastLoginAt       DateTime?
+  refreshToken      String?
+  googleId          String?   @unique
+
+  instructorProfile   InstructorProfile?
+  instructorRequest   InstructorApprovalRequest?
+  enrollments        Enrollment[]
+  certificates       Certificate[]
+  payments          Payment[]
+  reviews           Review[]
+  forumPosts        ForumPost[]
+  forumReplies      ForumReply[]
+  eventRegistrations EventRegistration[]
+  advisorySessions  AdvisorySession[]       @relation("UserSessions")
+  conductedSessions AdvisorySession[]       @relation("AdvisorSessions")
+  notifications     Notification[]
+  interests         UserInterest[]
+  applications      Application[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model InstructorProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  organization String?
+  expertise   String[]
+  isVerified  Boolean  @default(false)
+  totalEarned Float    @default(0)
+  revenueShare Float   @default(0.70)
+
+  courses Course[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("instructor_profiles")
+}
+
+model InstructorApprovalRequest {
+  id               String         @id @default(cuid())
+  userId           String         @unique
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status           ApprovalStatus @default(PENDING)
+
+  // Professional info submitted at registration
+  title            String
+  organization     String?
+  expertise        String[]
+  bio              String?
+  phone            String?
+  linkedinUrl      String?
+  portfolioUrl     String?
+  motivation       String?
+
+  // Admin review fields
+  reviewedById     String?
+  reviewedAt       DateTime?
+  adminNotes       String?
+  rejectionReason  String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status])
+  @@map("instructor_approval_requests")
+}
+
+model CourseCategory {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  nameEn    String
+  nameFr    String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("course_categories")
+}
+
+model Course {
+  id            String       @id @default(cuid())
+  title         String
+  titleFr       String?
+  description   String
+  descriptionFr String?
+  instructorId  String
+  instructor    InstructorProfile @relation(fields: [instructorId], references: [id])
+  price         Float        @default(0)
+  salePrice     Float?
+  currency      Currency     @default(XAF)
+  isFree        Boolean      @default(false)
+  level         CourseLevel
+  category      String
+  language      Language     @default(EN)
+  thumbnail     String?
+  previewVideo  String?
+  totalDuration Int          @default(0)
+  requirements      String[]
+  outcomes          String[]
+  tags              String[]
+  targetAudience    String[]
+  materialsIncluded String[]
+  status        CourseStatus @default(DRAFT)
+  isFeatured    Boolean      @default(false)
+  publishedAt   DateTime?
+
+  avgRating    Float @default(0)
+  reviewCount  Int   @default(0)
+  studentCount Int   @default(0)
+
+  sections    Section[]
+  enrollments Enrollment[]
+  reviews     Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([level])
+  @@index([isFeatured])
+  @@index([status])
+  @@map("courses")
+}
+
+model Section {
+  id       String   @id @default(cuid())
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  summary  String?
+  order    Int
+  lessons  Lesson[]
+
+  @@map("sections")
+}
+
+model Lesson {
+  id        String     @id @default(cuid())
+  sectionId String
+  section   Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  title     String
+  type      LessonType
+  videoUrl  String?
+  videoKey  String?
+  pdfUrl    String?
+  duration  Int?
+  order     Int
+  isPreview Boolean    @default(false)
+  content   Json?
+
+  completions LessonCompletion[]
+
+  @@map("lessons")
+}
+
+model Enrollment {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      String
+  course        Course    @relation(fields: [courseId], references: [id])
+  paymentId     String?   @unique
+  payment       Payment?  @relation(fields: [paymentId], references: [id])
+  progressPct   Float      @default(0)
+  completedAt  DateTime?
+  lastAccessedAt DateTime @default(now())
+
+  completions LessonCompletion[]
+
+  enrolledAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+model LessonCompletion {
+  id           String     @id @default(cuid())
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lessonId     String
+  lesson       Lesson     @relation(fields: [lessonId], references: [id])
+  completedAt  DateTime   @default(now())
+
+  @@unique([enrollmentId, lessonId])
+  @@map("lesson_completions")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@map("reviews")
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  amount      Float
+  currency    Currency
+  method      PaymentMethod
+  status      PaymentStatus @default(PENDING)
+  providerRef String?
+  phoneNumber String?
+  metadata    Json?
+  enrollment  Enrollment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Certificate {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId         String
+  courseName       String
+  verificationCode String   @unique @default(cuid())
+  pdfUrl           String?
+  issuedAt         DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@map("certificates")
+}
+
+model Publication {
+  id           String          @id @default(cuid())
+  title        String
+  titleFr      String?
+  abstract     String
+  authors      String[]
+  type         PublicationType
+  fileUrl      String
+  doi          String?
+  tags         String[]
+  sdgGoals     Int[]
+  downloadCount Int            @default(0)
+  isApproved   Boolean         @default(false)
+  publishedAt  DateTime
+  createdAt    DateTime        @default(now())
+
+  @@index([type])
+  @@map("publications")
+}
+
+model Event {
+  id          String     @id @default(cuid())
+  title       String
+  titleFr     String?
+  description String
+  type        EventType
+  startDate   DateTime
+  endDate     DateTime?
+  location    String
+  isOnline    Boolean    @default(false)
+  meetingUrl  String?
+  price       Float      @default(0)
+  currency    Currency   @default(XAF)
+  isFree      Boolean    @default(true)
+  capacity    Int?
+  thumbnail   String?
+  tags        String[]
+  isPublished Boolean    @default(false)
+
+  registrations EventRegistration[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("events")
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  attended  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+  @@map("event_registrations")
+}
+
+model AdvisorySession {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation("UserSessions", fields: [userId], references: [id])
+  advisorId   String
+  advisor     User         @relation("AdvisorSessions", fields: [advisorId], references: [id])
+  type        SessionType
+  scheduledAt DateTime
+  duration    Int
+  price       Float        @default(0)
+  status      SessionStatus @default(SCHEDULED)
+  meetingUrl  String?
+  notes       String?
+  actionItems String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("advisory_sessions")
+}
+
+model ForumPost {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  category  String
+  isPinned  Boolean      @default(false)
+  viewCount Int          @default(0)
+  likeCount Int          @default(0)
+  replies   ForumReply[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("forum_posts")
+}
+
+model ForumReply {
+  id        String    @id @default(cuid())
+  postId    String
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  likeCount Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("forum_replies")
+}
+
+model Opportunity {
+  id             String           @id @default(cuid())
+  title          String
+  organization   String
+  type           OpportunityType
+  description    String
+  requirements   String[]
+  deadline       DateTime
+  location       String
+  isRemote       Boolean          @default(false)
+  salary         String?
+  applicationUrl String
+  tags           String[]
+  isApproved     Boolean          @default(false)
+  applications   Application[]
+  createdAt      DateTime         @default(now())
+
+  @@index([type])
+  @@index([deadline])
+  @@map("opportunities")
+}
+
+model Application {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id])
+  status        String     @default("APPLIED")
+  appliedAt     DateTime   @default(now())
+
+  @@unique([userId, opportunityId])
+  @@map("applications")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  type      String
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model UserInterest {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category String
+
+  @@unique([userId, category])
+  @@map("user_interests")
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String
+  content     String?
+  author      String
+  publishedAt DateTime
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_posts")
+}
+
+model Testimonial {
+  id       String   @id @default(cuid())
+  quote    String
+  name     String
+  title    String
+  location String
+  avatar   String
+  order    Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("testimonials")
+}
+
+model SuccessStory {
+  id      String   @id @default(cuid())
+  name    String
+  title   String
+  story   String
+  impact  String
+  image   String
+  quote   String
+  year    Int
+  order   Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("success_stories")
+}
+
+model ImpactMetric {
+  id     String   @id @default(cuid())
+  label  String
+  value  Int
+  icon   String
+  color  String
+  sdgGoals Int[]
+  order  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("impact_metrics")
+}
+
+model FundingSource {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  type        String
+  url         String?
+  deadline    String?
+  amount      String?
+  eligibility String[]
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("funding_sources")
+}
+
+model RegionalImpact {
+  id       String  @id @default(cuid())
+  regionId String
+  name     String
+  learners Int     @default(0)
+  posX     Int     @default(50)
+  posY     Int     @default(50)
+  order    Int     @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("regional_impacts")
+}
+
+model TimelineMilestone {
+  id     String   @id @default(cuid())
+  year   Int
+  event  String
+  order  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("timeline_milestones")
+}
+
+model Sdg {
+  id     String   @id @default(cuid())
+  number Int
+  title  String
+  color  String
+  order  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([number])
+  @@map("sdgs")
+}
+
+model PlatformInfo {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  value        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("platform_info")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  bio       String?
+  photo     String?
+  email     String?
+  linkedin  String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("team_members")
+}
+
+model AboutStat {
+  id        String   @id @default(cuid())
+  number    String
+  labelEn   String
+  labelFr   String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("about_stats")
+}
