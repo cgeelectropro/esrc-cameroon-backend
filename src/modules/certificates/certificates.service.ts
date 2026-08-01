@@ -32,7 +32,7 @@ export class CertificatesService {
       issuedDate: new Date().toLocaleDateString('en-GB'),
       verificationCode: certificate.verificationCode,
     });
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
     await page.emulateMediaType('print');
@@ -60,7 +60,7 @@ export class CertificatesService {
       issuedDate: cert.issuedAt.toLocaleDateString('en-GB'),
       verificationCode: cert.verificationCode,
     });
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
     await page.emulateMediaType('print');
