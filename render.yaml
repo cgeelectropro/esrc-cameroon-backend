@@ -13,8 +13,16 @@ services:
         value: 4000
       - key: FRONTEND_URL
         sync: false
+      # DATABASE_URL: use Supabase's Transaction pooler (port 6543) and append
+      # ?pgbouncer=true — without it, Prisma's prepared statements break once
+      # the pool cycles ("prepared statement does not exist"). Get the exact
+      # host from Supabase Dashboard -> Connect -> Transaction pooler; the
+      # region/node number is project-specific, don't assume a default.
       - key: DATABASE_URL
         sync: false
+      # DIRECT_URL: use the Session pooler (port 5432), no pgbouncer flag.
+      # Required for `prisma migrate deploy` — running migrations against the
+      # transaction pooler hangs forever on the advisory lock.
       - key: DIRECT_URL
         sync: false
       - key: JWT_SECRET
