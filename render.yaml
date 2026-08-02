@@ -3,7 +3,7 @@ services:
     name: esrc-cameroon-backend
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: free
     region: frankfurt
     healthCheckPath: /api/v1/health
     envVars:
