@@ -25,7 +25,7 @@ export default Joi.object({
   PAYMENT_SANDBOX: Joi.string().trim().valid('0', '1').optional(),
   STRIPE_SECRET_KEY: Joi.string().optional(),
   STRIPE_WEBHOOK_SECRET: Joi.string().when('STRIPE_SECRET_KEY', {
-    is: Joi.string().min(1),
+    is: Joi.string().min(1).required(),
     then: Joi.required(),
     otherwise: Joi.optional(),
   }),
