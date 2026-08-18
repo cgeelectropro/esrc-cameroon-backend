@@ -45,4 +45,4 @@ COPY tsconfig*.json ./
 RUN npx prisma generate
 
 EXPOSE 4000
-CMD ["node", "-e", "require('tsconfig-paths').register({baseUrl:'./dist/src',paths:{'@/*':['*']}});require('./dist/src/main');"]
+CMD npx prisma migrate deploy && node -e "require('tsconfig-paths').register({baseUrl:'./dist/src',paths:{'@/*':['*']}});require('./dist/src/main');"
