@@ -6,6 +6,10 @@ import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Public } from '@/common/decorators/public.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { BookSessionDto } from './dto/book-session.dto';
+import { UpdateSessionDto } from './dto/update-session.dto';
+import { CreateSessionAdminDto } from './dto/create-session-admin.dto';
+import { UpdateAdvisorProfileDto } from './dto/update-advisor-profile.dto';
 
 @ApiTags('advisory')
 @Controller('advisory')
@@ -23,16 +27,25 @@ export class AdvisoryController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Book advisory session' })
-  book(@Body() dto: any, @CurrentUser('id') userId: string) {
+  book(@Body() dto: BookSessionDto, @CurrentUser('id') userId: string) {
     return this.advisoryService.book(userId, dto);
   }
 
   @Get('sessions')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get user advisory sessions' })
+  @ApiOperation({ summary: 'Get user advisory sessions (as the learner who booked them)' })
   getSessions(@CurrentUser('id') userId: string) {
     return this.advisoryService.getSessions(userId);
+  }
+
+  @Get('my-sessions')
+  @Roles('INSTRUCTOR', 'ADMIN', 'FELLOW')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get sessions booked with the current user as advisor' })
+  getMySessionsAsAdvisor(@CurrentUser('id') advisorId: string) {
+    return this.advisoryService.getSessionsAsAdvisor(advisorId);
   }
 
   @Patch('sessions/:id/cancel')
@@ -57,7 +70,7 @@ export class AdvisoryController {
   @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: update advisor profile (title, org, expertise, bio)' })
-  updateAdvisorProfile(@Param('id') id: string, @Body() dto: any) {
+  updateAdvisorProfile(@Param('id') id: string, @Body() dto: UpdateAdvisorProfileDto) {
     return this.advisoryService.updateAdvisorProfile(id, dto);
   }
 
@@ -84,7 +97,7 @@ export class AdvisoryController {
   @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: update advisory session status/notes' })
-  updateSession(@Param('id') id: string, @Body() dto: any) {
+  updateSession(@Param('id') id: string, @Body() dto: UpdateSessionDto) {
     return this.advisoryService.updateSession(id, dto);
   }
 
@@ -102,7 +115,7 @@ export class AdvisoryController {
   @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: create advisory session manually' })
-  createSession(@Body() dto: any) {
+  createSession(@Body() dto: CreateSessionAdminDto) {
     return this.advisoryService.createSession(dto);
   }
 }

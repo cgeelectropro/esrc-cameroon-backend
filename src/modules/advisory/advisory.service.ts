@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { SessionType } from '@prisma/client';
 import { EmailService } from '@/modules/email/email.service';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
+import { BookSessionDto } from './dto/book-session.dto';
+import { UpdateSessionDto } from './dto/update-session.dto';
+import { CreateSessionAdminDto } from './dto/create-session-admin.dto';
+import { UpdateAdvisorProfileDto } from './dto/update-advisor-profile.dto';
 
 @Injectable()
 export class AdvisoryService {
@@ -35,7 +39,7 @@ export class AdvisoryService {
     }));
   }
 
-  async book(userId: string, dto: { advisorId: string; type: string; scheduledAt: string; duration: number }) {
+  async book(userId: string, dto: BookSessionDto) {
     const session = await this.prisma.advisorySession.create({
       data: {
         userId,
@@ -87,6 +91,14 @@ export class AdvisoryService {
     });
   }
 
+  async getSessionsAsAdvisor(advisorId: string) {
+    return this.prisma.advisorySession.findMany({
+      where: { advisorId },
+      include: { user: { select: { firstName: true, lastName: true, avatar: true, email: true } } },
+      orderBy: { scheduledAt: 'desc' },
+    });
+  }
+
   async getAllSessions(query: { page?: string; limit?: string; status?: string; search?: string }) {
     const page = parseInt(query.page || '1');
     const limit = parseInt(query.limit || '20');
@@ -117,10 +129,12 @@ export class AdvisoryService {
     return { sessions, total, page, limit };
   }
 
-  async updateSession(id: string, dto: { status?: string; notes?: string }) {
+  async updateSession(id: string, dto: UpdateSessionDto) {
+    const existing = await this.prisma.advisorySession.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Session not found');
     return this.prisma.advisorySession.update({
       where: { id },
-      data: dto as any,
+      data: dto,
       include: {
         user: { select: { id: true, firstName: true, lastName: true } },
         advisor: { select: { id: true, firstName: true, lastName: true } },
@@ -129,16 +143,18 @@ export class AdvisoryService {
   }
 
   async deleteSession(id: string) {
+    const existing = await this.prisma.advisorySession.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Session not found');
     await this.prisma.advisorySession.delete({ where: { id } });
     return { success: true };
   }
 
-  async createSession(dto: { userId: string; advisorId: string; type: string; scheduledAt: string; duration?: number; notes?: string }) {
+  async createSession(dto: CreateSessionAdminDto) {
     const session = await this.prisma.advisorySession.create({
       data: {
         userId: dto.userId,
         advisorId: dto.advisorId,
-        type: dto.type as any,
+        type: dto.type,
         scheduledAt: new Date(dto.scheduledAt),
         duration: dto.duration || 60,
         notes: dto.notes,
@@ -159,7 +175,7 @@ export class AdvisoryService {
     return { success: true };
   }
 
-  async updateAdvisorProfile(advisorId: string, dto: { title?: string; organization?: string; expertise?: string[]; bio?: string; isAvailable?: boolean }) {
+  async updateAdvisorProfile(advisorId: string, dto: UpdateAdvisorProfileDto) {
     // Update the user's instructor profile (or create if missing)
     const existing = await this.prisma.instructorProfile.findUnique({ where: { userId: advisorId } });
     if (existing) {
