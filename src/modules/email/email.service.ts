@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Resend } from 'resend';
 import * as nodemailer from 'nodemailer';
 
 export interface EmailPayload {
@@ -11,15 +12,28 @@ export interface EmailPayload {
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
+  private resend: Resend | null = null;
   private transporter: nodemailer.Transporter | null = null;
   private from: string;
 
   constructor(private config: ConfigService) {
+    this.from = this.config.get<string>('email.from') || 'NextGen Platform <noreply@nextgen-en.com>';
+
+    // Resend (HTTP API) is preferred — raw SMTP sockets are blocked/unreliable
+    // on Render's free tier, which silently dropped every email for a week
+    // (Connection timeout / ENETUNREACH on smtp.gmail.com:465). Falls back
+    // to SMTP only if no Resend key is configured (e.g. local dev).
+    const resendApiKey = this.config.get<string>('email.resendApiKey');
+    if (resendApiKey) {
+      this.resend = new Resend(resendApiKey);
+      this.logger.log('Email service configured: Resend');
+      return;
+    }
+
     const host = this.config.get<string>('email.host');
     const port = this.config.get<number>('email.port') || 587;
     const user = this.config.get<string>('email.user');
     const pass = this.config.get<string>('email.pass');
-    this.from = this.config.get<string>('email.from') || 'NextGen Platform <noreply@nextgen-en.com>';
 
     if (host && user && pass) {
       this.transporter = nodemailer.createTransport({
@@ -28,13 +42,28 @@ export class EmailService {
         secure: port === 465,
         auth: { user, pass },
       });
-      this.logger.log(`Email service configured: ${host}:${port}`);
+      this.logger.log(`Email service configured: SMTP ${host}:${port}`);
     } else {
-      this.logger.warn('Email not configured — set SMTP_HOST, SMTP_USER, SMTP_PASS to enable emails');
+      this.logger.warn('Email not configured — set RESEND_API_KEY (or SMTP_HOST/USER/PASS) to enable emails');
     }
   }
 
   async send(payload: EmailPayload): Promise<void> {
+    if (this.resend) {
+      const { error } = await this.resend.emails.send({
+        from: this.from,
+        to: payload.to,
+        subject: payload.subject,
+        html: payload.html,
+      });
+      if (error) {
+        this.logger.error(`Failed to send email to ${payload.to}: ${error.message}`);
+        return;
+      }
+      this.logger.log(`Email sent to ${payload.to}: ${payload.subject}`);
+      return;
+    }
+
     if (!this.transporter) return;
     try {
       await this.transporter.sendMail({
@@ -272,9 +301,9 @@ export class EmailService {
   }
 
   async sendTestEmail(to: string): Promise<{ success: boolean; message: string; configured: boolean }> {
-    const configured = !!this.transporter;
+    const configured = !!this.resend || !!this.transporter;
     if (!configured) {
-      return { success: false, message: 'Email not configured — set SMTP_HOST, SMTP_USER, SMTP_PASS env vars', configured: false };
+      return { success: false, message: 'Email not configured — set RESEND_API_KEY (or SMTP_HOST, SMTP_USER, SMTP_PASS) env vars', configured: false };
     }
     const body =
       this.h2('Email Test Successful!') +
@@ -291,6 +320,6 @@ export class EmailService {
   }
 
   isConfigured(): boolean {
-    return !!this.transporter;
+    return !!this.resend || !!this.transporter;
   }
 }

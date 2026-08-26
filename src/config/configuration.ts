@@ -76,7 +76,10 @@ export default () => ({
   },
 
   email: {
-    // Explicit SMTP overrides take priority; fall back to Supabase SMTP relay
+    // Resend (HTTP API — not subject to the outbound SMTP port blocking that
+    // broke raw SMTP delivery on Render's free tier). Falls back to SMTP if
+    // no Resend key is set, for local/self-hosted setups.
+    resendApiKey: process.env.RESEND_API_KEY,
     host: process.env.SMTP_HOST || (process.env.SUPABASE_URL ? 'smtp.supabase.io' : undefined),
     port: parseInt(process.env.SMTP_PORT || '465', 10),
     user: process.env.SMTP_USER || process.env.SUPABASE_SMTP_USER,
