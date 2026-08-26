@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import configuration from './config/configuration';
@@ -34,6 +35,18 @@ import { EmailModule } from './modules/email/email.module';
       isGlobal: true,
       load: [configuration],
       validationSchema,
+    }),
+    // In-memory response cache for public, read-heavy, non-personalized GET
+    // endpoints (course listings, content pages, events, advisors). No Redis
+    // is provisioned in production, so this uses the default in-memory store
+    // — fine for a single-instance deployment. Only applied per-route via
+    // @UseInterceptors(CacheInterceptor) on @Public() endpoints; never on
+    // authenticated/personalized routes, since the cache key doesn't vary
+    // per user.
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60000, // 60s
+      max: 500, // cap entries to bound memory use
     }),
     // Rate limiting: tiered by endpoint sensitivity
     // auth: 10 requests per minute (protect against brute-force)

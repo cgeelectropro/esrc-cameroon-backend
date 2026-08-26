@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ContentService } from './content.service';
 import { Public } from '@/common/decorators/public.decorator';
@@ -19,6 +20,7 @@ export class ContentController {
   constructor(private contentService: ContentService) {}
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('testimonials')
   @ApiOperation({ summary: 'List testimonials' })
   getTestimonials() {
@@ -26,6 +28,7 @@ export class ContentController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('impact-metrics')
   @ApiOperation({ summary: 'Get impact metrics and success stories' })
   getImpactMetrics() {
@@ -33,6 +36,7 @@ export class ContentController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('funding-sources')
   @ApiOperation({ summary: 'List funding sources' })
   getFundingSources() {
@@ -40,6 +44,7 @@ export class ContentController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('regional-impacts')
   @ApiOperation({ summary: 'List regional impact data' })
   getRegionalImpacts() {
@@ -47,6 +52,7 @@ export class ContentController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('timeline-milestones')
   @ApiOperation({ summary: 'List timeline milestones' })
   getTimelineMilestones() {
@@ -54,6 +60,7 @@ export class ContentController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('sdgs')
   @ApiOperation({ summary: 'List SDG alignments' })
   getSdgs() {
@@ -61,6 +68,7 @@ export class ContentController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('platform-info')
   @ApiOperation({ summary: 'Get platform info (founded, team, etc.)' })
   getPlatformInfo() {
@@ -184,6 +192,7 @@ export class ContentController {
 
   // ── Public: Team Members ──────────────────────────────────────────────────
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('team')
   @ApiOperation({ summary: 'Get active team members' })
   getTeamMembers() { return this.contentService.getTeamMembers(); }
@@ -215,6 +224,7 @@ export class ContentController {
 
   // ── Public: About Stats ───────────────────────────────────────────────────
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('about-stats')
   @ApiOperation({ summary: 'Get about page stats' })
   getAboutStats() { return this.contentService.getAboutStats(); }

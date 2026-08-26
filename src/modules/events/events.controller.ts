@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { EventsService } from './events.service';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
@@ -14,12 +15,14 @@ export class EventsController {
   constructor(private eventsService: EventsService) {}
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get()
   findAll(@Query() query: any) {
     return this.eventsService.findAll(query);
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.eventsService.findOne(id);

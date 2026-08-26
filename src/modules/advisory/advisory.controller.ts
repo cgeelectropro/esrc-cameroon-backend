@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AdvisoryService } from './advisory.service';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
@@ -17,6 +18,7 @@ export class AdvisoryController {
   constructor(private advisoryService: AdvisoryService) {}
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('advisors')
   @ApiOperation({ summary: 'List available advisors' })
   getAdvisors() {

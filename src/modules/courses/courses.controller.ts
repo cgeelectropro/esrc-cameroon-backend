@@ -7,7 +7,9 @@ import {
   Body,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { EnrollmentsService } from './enrollments.service';
@@ -32,6 +34,7 @@ export class CoursesController {
   ) {}
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get('categories')
   @ApiOperation({ summary: 'List all active course categories' })
   getCategories() {
@@ -39,6 +42,7 @@ export class CoursesController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get()
   findAll(@Query() filter: CourseFilterDto) {
     return this.coursesService.findAll(filter);
@@ -54,6 +58,7 @@ export class CoursesController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.coursesService.findOne(id);
@@ -125,6 +130,7 @@ export class CoursesController {
   }
 
   @Public()
+  @UseInterceptors(CacheInterceptor)
   @Get(':courseId/reviews')
   getCourseReviews(@Param('courseId') courseId: string) {
     return this.coursesService.getCourseReviews(courseId);
