@@ -15,15 +15,15 @@ export class InstructorController {
   constructor(private instructorService: InstructorService) {}
 
   @Get('courses')
-  @ApiOperation({ summary: 'List instructor courses with sections and lessons' })
-  getCourses(@CurrentUser('id') userId: string) {
-    return this.instructorService.getCourses(userId);
+  @ApiOperation({ summary: 'List instructor courses with sections and lessons (admins see all)' })
+  getCourses(@CurrentUser('id') userId: string, @CurrentUser('role') role: string) {
+    return this.instructorService.getCourses(userId, role);
   }
 
   @Get('courses/:id')
-  @ApiOperation({ summary: 'Get course by id for editing (instructor owns it)' })
-  getCourseById(@Param('id') courseId: string, @CurrentUser('id') userId: string) {
-    return this.instructorService.getCourseById(courseId, userId);
+  @ApiOperation({ summary: 'Get course by id for editing (instructor owns it; admin can access any)' })
+  getCourseById(@Param('id') courseId: string, @CurrentUser('id') userId: string, @CurrentUser('role') role: string) {
+    return this.instructorService.getCourseById(courseId, userId, role);
   }
 
   @Get('revenue')

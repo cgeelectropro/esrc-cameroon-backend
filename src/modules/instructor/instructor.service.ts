@@ -5,13 +5,18 @@ import { PrismaService } from '@/prisma/prisma.service';
 export class InstructorService {
   constructor(private prisma: PrismaService) {}
 
-  async getCourses(userId: string) {
-    const profile = await this.prisma.instructorProfile.findFirst({
+  async getCourses(userId: string, role: string) {
+    const isAdmin = role === 'ADMIN';
+    const profile = isAdmin ? null : await this.prisma.instructorProfile.findFirst({
       where: { userId },
     });
-    // Admin (no profile) sees all courses; instructor sees own courses
+    // Admins see every course regardless of author; instructors see their own.
+    // Branching on role (not "has a profile") matters because an admin who has
+    // ever created a course gets an auto-created profile too, which previously
+    // made them fall into the "instructor" branch and lose visibility into
+    // everyone else's courses.
     return this.prisma.course.findMany({
-      where: profile ? { instructorId: profile.id } : {},
+      where: isAdmin ? {} : { instructorId: profile?.id ?? '__none__' },
       include: {
         sections: {
           include: { lessons: { orderBy: { order: 'asc' } } },
@@ -25,13 +30,13 @@ export class InstructorService {
     });
   }
 
-  async getCourseById(courseId: string, userId: string) {
-    const profile = await this.prisma.instructorProfile.findFirst({
+  async getCourseById(courseId: string, userId: string, role: string) {
+    const isAdmin = role === 'ADMIN';
+    const profile = isAdmin ? null : await this.prisma.instructorProfile.findFirst({
       where: { userId },
     });
-    // Admin (no profile) can access any course; instructor can only access own
     return this.prisma.course.findFirst({
-      where: profile ? { id: courseId, instructorId: profile.id } : { id: courseId },
+      where: isAdmin ? { id: courseId } : { id: courseId, instructorId: profile?.id ?? '__none__' },
       include: {
         sections: {
           include: { lessons: { orderBy: { order: 'asc' } } },
