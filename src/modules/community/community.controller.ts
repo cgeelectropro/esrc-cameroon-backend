@@ -6,6 +6,9 @@ import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Public } from '@/common/decorators/public.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CreatePostDto } from './dto/create-post.dto';
+import { ReplyDto } from './dto/reply.dto';
+import { AdminUpdatePostDto } from './dto/admin-update-post.dto';
 
 @ApiTags('community')
 @Controller('community')
@@ -27,14 +30,14 @@ export class CommunityController {
   @Post('forum')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  createPost(@Body() dto: any, @CurrentUser('id') userId: string) {
+  createPost(@Body() dto: CreatePostDto, @CurrentUser('id') userId: string) {
     return this.communityService.createPost(userId, dto);
   }
 
   @Post('forum/:id/reply')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  reply(@Param('id') postId: string, @Body() dto: { content: string }, @CurrentUser('id') userId: string) {
+  reply(@Param('id') postId: string, @Body() dto: ReplyDto, @CurrentUser('id') userId: string) {
     return this.communityService.reply(postId, userId, dto.content);
   }
 
@@ -52,7 +55,7 @@ export class CommunityController {
   @Roles('ADMIN')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: pin/unpin or update forum post' })
-  adminUpdateForumPost(@Param('id') id: string, @Body() dto: any) {
+  adminUpdateForumPost(@Param('id') id: string, @Body() dto: AdminUpdatePostDto) {
     return this.communityService.adminUpdateForumPost(id, dto);
   }
 

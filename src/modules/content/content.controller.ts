@@ -5,6 +5,13 @@ import { Public } from '@/common/decorators/public.decorator';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
+import { CreateSuccessStoryDto, UpdateSuccessStoryDto } from './dto/success-story.dto';
+import { CreateFundingSourceDto, UpdateFundingSourceDto } from './dto/funding-source.dto';
+import { CreateTimelineMilestoneDto, UpdateTimelineMilestoneDto } from './dto/timeline-milestone.dto';
+import { CreateRegionalImpactDto, UpdateRegionalImpactDto } from './dto/regional-impact.dto';
+import { CreateTeamMemberDto, UpdateTeamMemberDto } from './dto/team-member.dto';
+import { CreateAboutStatDto, UpdateAboutStatDto } from './dto/about-stat.dto';
+import { UpsertPlatformInfoDto } from './dto/platform-info.dto';
 
 @ApiTags('content')
 @Controller('content')
@@ -71,13 +78,13 @@ export class ContentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminCreateSuccessStory(@Body() dto: any) { return this.contentService.adminCreateSuccessStory(dto); }
+  adminCreateSuccessStory(@Body() dto: CreateSuccessStoryDto) { return this.contentService.adminCreateSuccessStory(dto); }
 
   @Patch('admin/success-stories/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminUpdateSuccessStory(@Param('id') id: string, @Body() dto: any) { return this.contentService.adminUpdateSuccessStory(id, dto); }
+  adminUpdateSuccessStory(@Param('id') id: string, @Body() dto: UpdateSuccessStoryDto) { return this.contentService.adminUpdateSuccessStory(id, dto); }
 
   @Delete('admin/success-stories/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -96,13 +103,13 @@ export class ContentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminCreateFundingSource(@Body() dto: any) { return this.contentService.adminCreateFundingSource(dto); }
+  adminCreateFundingSource(@Body() dto: CreateFundingSourceDto) { return this.contentService.adminCreateFundingSource(dto); }
 
   @Patch('admin/funding-sources/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminUpdateFundingSource(@Param('id') id: string, @Body() dto: any) { return this.contentService.adminUpdateFundingSource(id, dto); }
+  adminUpdateFundingSource(@Param('id') id: string, @Body() dto: UpdateFundingSourceDto) { return this.contentService.adminUpdateFundingSource(id, dto); }
 
   @Delete('admin/funding-sources/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -121,13 +128,13 @@ export class ContentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminCreateTimelineMilestone(@Body() dto: any) { return this.contentService.adminCreateTimelineMilestone(dto); }
+  adminCreateTimelineMilestone(@Body() dto: CreateTimelineMilestoneDto) { return this.contentService.adminCreateTimelineMilestone(dto); }
 
   @Patch('admin/timeline/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminUpdateTimelineMilestone(@Param('id') id: string, @Body() dto: any) { return this.contentService.adminUpdateTimelineMilestone(id, dto); }
+  adminUpdateTimelineMilestone(@Param('id') id: string, @Body() dto: UpdateTimelineMilestoneDto) { return this.contentService.adminUpdateTimelineMilestone(id, dto); }
 
   @Delete('admin/timeline/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -146,13 +153,13 @@ export class ContentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminCreateRegionalImpact(@Body() dto: any) { return this.contentService.adminCreateRegionalImpact(dto); }
+  adminCreateRegionalImpact(@Body() dto: CreateRegionalImpactDto) { return this.contentService.adminCreateRegionalImpact(dto); }
 
   @Patch('admin/regional-impacts/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminUpdateRegionalImpact(@Param('id') id: string, @Body() dto: any) { return this.contentService.adminUpdateRegionalImpact(id, dto); }
+  adminUpdateRegionalImpact(@Param('id') id: string, @Body() dto: UpdateRegionalImpactDto) { return this.contentService.adminUpdateRegionalImpact(id, dto); }
 
   @Delete('admin/regional-impacts/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -171,7 +178,7 @@ export class ContentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminUpsertPlatformInfo(@Body() dto: { key: string; value: string }) {
+  adminUpsertPlatformInfo(@Body() dto: UpsertPlatformInfoDto) {
     return this.contentService.adminUpsertPlatformInfo(dto.key, dto.value);
   }
 
@@ -192,13 +199,13 @@ export class ContentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminCreateTeamMember(@Body() dto: any) { return this.contentService.adminCreateTeamMember(dto); }
+  adminCreateTeamMember(@Body() dto: CreateTeamMemberDto) { return this.contentService.adminCreateTeamMember(dto); }
 
   @Patch('admin/team/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminUpdateTeamMember(@Param('id') id: string, @Body() dto: any) { return this.contentService.adminUpdateTeamMember(id, dto); }
+  adminUpdateTeamMember(@Param('id') id: string, @Body() dto: UpdateTeamMemberDto) { return this.contentService.adminUpdateTeamMember(id, dto); }
 
   @Delete('admin/team/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -223,13 +230,13 @@ export class ContentController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminCreateAboutStat(@Body() dto: any) { return this.contentService.adminCreateAboutStat(dto); }
+  adminCreateAboutStat(@Body() dto: CreateAboutStatDto) { return this.contentService.adminCreateAboutStat(dto); }
 
   @Patch('admin/about-stats/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  adminUpdateAboutStat(@Param('id') id: string, @Body() dto: any) { return this.contentService.adminUpdateAboutStat(id, dto); }
+  adminUpdateAboutStat(@Param('id') id: string, @Body() dto: UpdateAboutStatDto) { return this.contentService.adminUpdateAboutStat(id, dto); }
 
   @Delete('admin/about-stats/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)

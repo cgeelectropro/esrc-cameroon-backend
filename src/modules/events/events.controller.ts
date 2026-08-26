@@ -6,6 +6,7 @@ import { RolesGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Public } from '@/common/decorators/public.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
+import { CreateEventDto } from './dto/create-event.dto';
 
 @ApiTags('events')
 @Controller('events')
@@ -28,7 +29,7 @@ export class EventsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiBearerAuth()
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateEventDto) {
     return this.eventsService.create(dto);
   }
 
