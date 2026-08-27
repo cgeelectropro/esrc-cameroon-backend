@@ -99,6 +99,8 @@ export class CoursesService {
         requirements: dto.requirements ?? [],
         outcomes: dto.outcomes ?? [],
         tags: dto.tags ?? [],
+        targetAudience: dto.targetAudience ?? [],
+        materialsIncluded: dto.materialsIncluded ?? [],
         status: (dto.status as any) ?? 'DRAFT',
         salePrice: dto.salePrice,
       },
