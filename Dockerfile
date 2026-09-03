@@ -45,4 +45,8 @@ COPY tsconfig*.json ./
 RUN npx prisma generate
 
 EXPOSE 4000
-CMD npx prisma migrate deploy && node -e "require('tsconfig-paths').register({baseUrl:'./dist/src',paths:{'@/*':['*']}});require('./dist/src/main');"
+# Migrations run as Render's preDeployCommand (render.yaml), not here — this
+# CMD also runs every time a free-tier instance wakes from idle, and running
+# `prisma migrate deploy` on every cold start (not just real deploys) was
+# adding an extra DB round-trip to an already-slow wake-up.
+CMD node -e "require('tsconfig-paths').register({baseUrl:'./dist/src',paths:{'@/*':['*']}});require('./dist/src/main');"

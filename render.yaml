@@ -6,6 +6,9 @@ services:
     plan: free
     region: frankfurt
     healthCheckPath: /api/v1/health
+    # Runs once per real deploy (not on free-tier idle wake-ups), so cold
+    # starts from inactivity no longer pay the migration-check cost.
+    preDeployCommand: npx prisma migrate deploy
     envVars:
       - key: NODE_ENV
         value: production

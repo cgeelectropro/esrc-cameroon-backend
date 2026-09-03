@@ -42,9 +42,11 @@ export class CoursesService {
         where,
         skip: (page - 1) * limit,
         take: limit,
+        // Card/grid views only need course scalars + instructor name — not
+        // every section's lessons (video/PDF URLs, full lesson content),
+        // which used to be pulled for every course on every catalog page.
         include: {
           instructor: { include: { user: { select: { firstName: true, lastName: true, avatar: true } } } },
-          sections: { include: { lessons: true }, orderBy: { order: 'asc' } },
         },
         orderBy: filter.sortBy === 'rating' ? { avgRating: 'desc' } : { createdAt: 'desc' },
       }),

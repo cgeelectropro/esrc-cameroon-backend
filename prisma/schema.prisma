@@ -253,6 +253,7 @@ model Course {
   @@index([level])
   @@index([isFeatured])
   @@index([status])
+  @@index([instructorId])
   @@map("courses")
 }
 
@@ -265,6 +266,7 @@ model Section {
   order    Int
   lessons  Lesson[]
 
+  @@index([courseId])
   @@map("sections")
 }
 
@@ -284,6 +286,7 @@ model Lesson {
 
   completions LessonCompletion[]
 
+  @@index([sectionId])
   @@map("lessons")
 }
 
@@ -304,6 +307,7 @@ model Enrollment {
   enrolledAt DateTime @default(now())
 
   @@unique([userId, courseId])
+  @@index([courseId])
   @@map("enrollments")
 }
 
@@ -331,6 +335,7 @@ model Review {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, courseId])
+  @@index([courseId])
   @@map("reviews")
 }
 
