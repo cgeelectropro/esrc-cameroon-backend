@@ -245,11 +245,6 @@ export class AdminService {
   }
 
   async deleteCourse(id: string) {
-    await this.prisma.course.update({ where: { id }, data: { status: 'TRASH' as any } });
-    return { message: 'Course moved to trash' };
-  }
-
-  async permanentDeleteCourse(id: string) {
     // Delete dependent records that lack cascade rules before removing the course.
     // Order matters: lessonCompletions reference enrollments, so delete them first.
     await this.prisma.lessonCompletion.deleteMany({ where: { enrollment: { courseId: id } } });

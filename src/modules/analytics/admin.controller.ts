@@ -108,15 +108,9 @@ export class AdminController {
   }
 
   @Delete('courses/:id')
-  @ApiOperation({ summary: 'Move course to trash' })
+  @ApiOperation({ summary: 'Permanently delete course' })
   deleteCourse(@Param('id') id: string) {
     return this.adminService.deleteCourse(id);
-  }
-
-  @Delete('courses/:id/permanent')
-  @ApiOperation({ summary: 'Permanently delete course' })
-  permanentDeleteCourse(@Param('id') id: string) {
-    return this.adminService.permanentDeleteCourse(id);
   }
 
   // ─── Events ─────────────────────────────────────────────────────────────────

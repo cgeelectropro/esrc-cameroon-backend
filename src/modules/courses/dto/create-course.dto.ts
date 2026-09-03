@@ -95,6 +95,6 @@ export class CreateCourseDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(['PUBLISHED', 'DRAFT', 'PENDING', 'PRIVATE', 'TRASH'])
+  @IsEnum(['PUBLISHED', 'DRAFT', 'PENDING', 'PRIVATE'])
   status?: string;
 }
